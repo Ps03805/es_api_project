@@ -1,0 +1,5 @@
+connect\main\ServiceREST.class
+connect\main\ElasticConnection.class
+connect\main\Utils.class
+connect\main\rest\worker\UserWorkerVerticle.class
+connect\main\Connect.class
