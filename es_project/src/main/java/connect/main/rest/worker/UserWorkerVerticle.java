@@ -59,4 +59,18 @@ public class UserWorkerVerticle extends AbstractVerticle {
             message.fail(500, e.getMessage());
         }
     };
+    private final Action1<Message<JsonObject>> listHandler = message -> {
+        try {
+            JsonObject jsonObject = message.body().getJsonObject("body");
+            String sm_type = message.body().getString("category");
+            String name = jsonObject.getString("name");
+
+            String key = Utils.create("db", sm_type, name.toLowerCase(), jsonObject.getMap());
+
+            message.reply(key);
+        } catch (Exception e) {
+            System.out.println("Error : " + e.getMessage());
+            message.fail(500, e.getMessage());
+        }
+    };
 }
