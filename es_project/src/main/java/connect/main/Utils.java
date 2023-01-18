@@ -12,18 +12,35 @@ import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
-import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortOrder;
+import org.elasticsearch.xcontent.XContentType;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class Utils {
     private static RestHighLevelClient client = Connect.getInstance().getClient();
+
+    public static List<JsonObject> responseToJsonList(SearchResponse response) {
+        List<JsonObject> resultList = new ArrayList();
+        SearchHit[] var2 = response.getHits().getHits();
+        int var3 = var2.length;
+
+        for(int var4 = 0; var4 < var3; ++var4) {
+            SearchHit hit = var2[var4];
+            resultList.add(new JsonObject(hit.getSourceAsString()));
+        }
+
+        return resultList;
+    }
 
     static public String create(String index, String sm_type, String key, Map<String, Object> indexMap) throws IOException {
         IndexRequest indexRequest = new IndexRequest()
@@ -59,7 +76,7 @@ public class Utils {
         return key;
     }
 
-    public static SearchResponse search(String[] indices, int from, int size, BoolQueryBuilder qb, String[] includeFields, String[] excludeFields, Map<String, SortOrder> sortMap, HighlightBuilder highlightBuilder, AggregationBuilder aggs) throws ElasticsearchStatusException, IOException {
+    public static SearchResponse search(String indices, int from, int size, BoolQueryBuilder qb, String[] includeFields, String[] excludeFields, Map<String, SortOrder> sortMap, HighlightBuilder highlightBuilder, AggregationBuilder aggs) throws ElasticsearchStatusException, IOException {
         SearchSourceBuilder sourceBuilder = SearchSourceBuilder.searchSource();
         sourceBuilder.query(qb);
         sourceBuilder.from(from);
@@ -72,8 +89,8 @@ public class Utils {
         return search(indices, sourceBuilder);
     }
 
-    static public SearchResponse search(String[] indices, SearchSourceBuilder sourceBuilder) throws IOException {
-        SearchRequest searchRequest = (new SearchRequest(indices)).source(sourceBuilder).allowPartialSearchResults(true);
+    static public SearchResponse search(String indices, SearchSourceBuilder sourceBuilder) throws IOException {
+        SearchRequest searchRequest = (new SearchRequest(Strings.commaDelimitedListToStringArray(indices))).source(sourceBuilder).allowPartialSearchResults(true);
         return client.search(searchRequest, RequestOptions.DEFAULT);
     }
 }
